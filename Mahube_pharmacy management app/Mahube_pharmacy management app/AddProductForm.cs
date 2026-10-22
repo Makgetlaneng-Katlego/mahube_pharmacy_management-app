@@ -15,6 +15,7 @@ namespace PharmacyManagementSystem
     {
         private readonly DatabaseConnection _db = new DatabaseConnection();
         private readonly ProductRepository _productRepo;
+        private readonly int? _productId;
 
         // UI controls
         private TextBox txtProductName;
@@ -31,11 +32,28 @@ namespace PharmacyManagementSystem
         // For image loading cancellation
         private CancellationTokenSource _imageLoadCts;
 
-        public AddProductForm()
+        public AddProductForm() : this(null)
         {
+        }
+
+        public AddProductForm(int productId) : this((int?)productId)
+        {
+        }
+
+        private AddProductForm(int? productId)
+        {
+            _productId = productId;
             _productRepo = new ProductRepository(_db);
             InitializeComponent();
-            LoadCategoriesAsync().ConfigureAwait(false); // fire-and-forget, but we'll handle errors
+            if (_productId.HasValue)
+            {
+                Text = "Edit Product";
+                LoadProductForEditAsync();
+            }
+            else
+            {
+                LoadCategoriesAsync();
+            }
             StartPosition = FormStartPosition.CenterParent;
         }
 
@@ -185,7 +203,7 @@ namespace PharmacyManagementSystem
 
             btnAddProduct = new Button
             {
-                Text = "Add Product",
+                Text = _productId.HasValue ? "Update Product" : "Add Product",
                 Size = new Size(120, 35),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 BackColor = Color.FromArgb(46, 125, 50),
@@ -216,7 +234,41 @@ namespace PharmacyManagementSystem
             table.RowCount = row;
 
             // Add everything to the form
-            Controls.AddRange(new Control[] { panelTitle, table });
+            // Add the content first and the title last so the title bar is docked above
+            // the form fields instead of covering the Product Name row.
+            Controls.Add(table);
+            Controls.Add(panelTitle);
+        }
+
+        private async void LoadProductForEditAsync()
+        {
+            try
+            {
+                await LoadCategoriesAsync();
+                DataTable dt = await Task.Run(() => _db.ExecuteQuery(
+                    "SELECT product_name, category_id, price, stock_quantity, description, image FROM products WHERE product_id = @product_id",
+                    new MySqlParameter[] { new MySqlParameter("@product_id", _productId.Value) }));
+
+                if (dt.Rows.Count == 0)
+                {
+                    MessageBox.Show("Product not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Close();
+                    return;
+                }
+
+                DataRow row = dt.Rows[0];
+                txtProductName.Text = row["product_name"].ToString();
+                cmbCategory.SelectedValue = Convert.ToInt32(row["category_id"]);
+                txtPrice.Text = Convert.ToDecimal(row["price"]).ToString(CultureInfo.InvariantCulture);
+                txtStockQuantity.Text = row["stock_quantity"].ToString();
+                txtDescription.Text = row["description"] == DBNull.Value ? string.Empty : row["description"].ToString();
+                txtImageUrl.Text = row["image"] == DBNull.Value ? string.Empty : row["image"].ToString();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading product: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Close();
+            }
         }
 
         private Panel CreateTitlePanel()
@@ -345,8 +397,9 @@ namespace PharmacyManagementSystem
                 return;
 
             btnAddProduct.Enabled = false;
-            btnAddProduct.Text = "Adding...";
-            lblStatus.Text = "Adding product...";
+            bool editing = _productId.HasValue;
+            btnAddProduct.Text = editing ? "Updating..." : "Adding...";
+            lblStatus.Text = editing ? "Updating product..." : "Adding product...";
 
             try
             {
@@ -360,8 +413,12 @@ namespace PharmacyManagementSystem
                     ImageUrl = string.IsNullOrWhiteSpace(txtImageUrl.Text) ? null : txtImageUrl.Text.Trim()
                 };
 
-                await _productRepo.AddAsync(product);
-                MessageBox.Show("Product added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (editing)
+                    await _productRepo.UpdateAsync(_productId.Value, product);
+                else
+                    await _productRepo.AddAsync(product);
+
+                MessageBox.Show(editing ? "Product updated successfully!" : "Product added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -373,8 +430,8 @@ namespace PharmacyManagementSystem
             finally
             {
                 btnAddProduct.Enabled = true;
-                btnAddProduct.Text = "Add Product";
-                if (lblStatus.Text == "Adding product...")
+                btnAddProduct.Text = editing ? "Update Product" : "Add Product";
+                if (lblStatus.Text == "Adding product..." || lblStatus.Text == "Updating product...")
                     lblStatus.Text = string.Empty;
             }
         }
@@ -428,6 +485,7 @@ namespace PharmacyManagementSystem
             public int Stock { get; set; }
             public string Description { get; set; }
             public string ImageUrl { get; set; }
+
         }
 
         private class ProductRepository
@@ -455,6 +513,26 @@ namespace PharmacyManagementSystem
                 };
 
                 // Offload the synchronous DB call to a thread-pool thread
+                await Task.Run(() => _db.ExecuteNonQuery(query, parameters));
+            }
+
+            public async Task UpdateAsync(int productId, Product product)
+            {
+                string query = @"UPDATE products SET product_name = @product_name, category_id = @category_id,
+                                 price = @price, stock_quantity = @stock_quantity, description = @description, image = @image
+                                 WHERE product_id = @product_id";
+
+                MySqlParameter[] parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("@product_id", productId),
+                    new MySqlParameter("@product_name", product.Name),
+                    new MySqlParameter("@category_id", product.CategoryId),
+                    new MySqlParameter("@price", product.Price),
+                    new MySqlParameter("@stock_quantity", product.Stock),
+                    new MySqlParameter("@description", product.Description ?? (object)DBNull.Value),
+                    new MySqlParameter("@image", product.ImageUrl ?? (object)DBNull.Value)
+                };
+
                 await Task.Run(() => _db.ExecuteNonQuery(query, parameters));
             }
         }

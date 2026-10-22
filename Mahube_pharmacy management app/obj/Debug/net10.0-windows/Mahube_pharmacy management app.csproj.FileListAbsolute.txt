@@ -32,3 +32,6 @@ C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy manag
 C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy management app\obj\Debug\net10.0-windows\PharmacyManagementSystem.DashboardForm.resources
 C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy management app\obj\Debug\net10.0-windows\PharmacyManagementSystem.ConsultationForm.resources
 C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy management app\obj\Debug\net10.0-windows\PharmacyManagementSystem.UserManagementForm.resources
+C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy management app\obj\Debug\net10.0-windows\PharmacyManagementSystem.PrescriptionForm.resources
+C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy management app\obj\Debug\net10.0-windows\Mahube_pharmacy management app.sourcelink.json
+C:\Users\makge\source\repos\Mahube_pharmacy management app\Mahube_pharmacy management app\obj\Debug\net10.0-windows\PharmacyManagementSystem.OrdersForm.resources

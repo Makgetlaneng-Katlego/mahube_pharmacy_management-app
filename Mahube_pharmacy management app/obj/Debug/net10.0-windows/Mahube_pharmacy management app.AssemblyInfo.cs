@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mahube_pharmacy management app")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a2499065bec0f73a845e6cfe236dd40a22b81ba")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mahube_pharmacy management app")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mahube_pharmacy management app")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

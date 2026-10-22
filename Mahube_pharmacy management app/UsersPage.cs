@@ -26,7 +26,6 @@ namespace PharmacyManagementSystem
         private Button btnConsultations;
         private Button btnPrescriptions;
         private Button btnUsers;
-        private Button btnSettings;
         private Button btnLogout;
 
         public UserManagementForm()
@@ -61,7 +60,6 @@ namespace PharmacyManagementSystem
             btnConsultations = CreateSideButton("💬 Consultations", 156);
             btnPrescriptions = CreateSideButton("💊 Prescriptions", 208);
             btnUsers = CreateSideButton("👥 Users", 260);
-            btnSettings = CreateSideButton("⚙️ Settings", 312);
 
             btnDashboard.Click += BtnDashboard_Click;
             btnProducts.Click += BtnProducts_Click;
@@ -69,7 +67,6 @@ namespace PharmacyManagementSystem
             btnConsultations.Click += BtnConsultations_Click;
             btnPrescriptions.Click += BtnPrescriptions_Click;
             btnUsers.Click += BtnUsers_Click;
-            btnSettings.Click += BtnSettings_Click;
 
             btnLogout = new Button
             {
@@ -86,7 +83,7 @@ namespace PharmacyManagementSystem
 
             panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders,
                                                         btnConsultations, btnPrescriptions, btnUsers,
-                                                        btnSettings, btnLogout });
+                                                        btnLogout });
 
             panelHeader = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.WhiteSmoke };
             lblTitle = new Label
@@ -395,11 +392,6 @@ namespace PharmacyManagementSystem
         private void BtnUsers_Click(object sender, EventArgs e)
         {
             LoadUsers(); // refresh
-        }
-
-        private void BtnSettings_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Settings page (not implemented)", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void BtnLogout_Click(object sender, EventArgs e)

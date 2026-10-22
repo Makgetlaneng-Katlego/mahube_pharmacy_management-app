@@ -59,7 +59,6 @@ namespace PharmacyManagementSystem
             btnConsultations = CreateSideButton("💬 Consultations", 156);
             btnPrescriptions = CreateSideButton("💊 Prescriptions", 208);
             var btnUsers = CreateSideButton("👥 Users", 260);
-            var btnSettings = CreateSideButton("⚙️ Settings", 312);
 
             btnDashboard.Click += BtnDashboard_Click;
             btnProducts.Click += BtnProducts_Click;
@@ -80,7 +79,7 @@ namespace PharmacyManagementSystem
             btnLogout.FlatAppearance.BorderSize = 0;
             btnLogout.Click += BtnLogout_Click;
 
-            panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders, btnConsultations, btnPrescriptions, btnUsers, btnSettings, btnLogout });
+            panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders, btnConsultations, btnPrescriptions, btnUsers, btnLogout });
 
             // Header panel
             panelHeader = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.WhiteSmoke };
@@ -277,7 +276,7 @@ namespace PharmacyManagementSystem
                 {
                     int stock = Convert.ToInt32(row["stock_quantity"]);
                     decimal price = Convert.ToDecimal(row["price"]);
-                    string status = stock <= 10 ? "Low Stock" : "In Stock";
+                    string status = stock <= 0 ? "Empty" : stock <= 10 ? "Low Stock" : "In Stock";
 
                     dgvProducts.Rows.Add(
                         row["product_id"].ToString(),
@@ -291,7 +290,12 @@ namespace PharmacyManagementSystem
                     // Color code the status
                     int rowIndex = dgvProducts.Rows.Count - 1;
                     var statusCell = dgvProducts.Rows[rowIndex].Cells["status"];
-                    if (status == "Low Stock")
+                    if (status == "Empty")
+                    {
+                        statusCell.Style.BackColor = Color.FromArgb(211, 47, 47);
+                        statusCell.Style.ForeColor = Color.White;
+                    }
+                    else if (status == "Low Stock")
                     {
                         statusCell.Style.BackColor = Color.FromArgb(255, 193, 7);
                         statusCell.Style.ForeColor = Color.FromArgb(33, 33, 33);
@@ -336,7 +340,19 @@ namespace PharmacyManagementSystem
 
             if (e.ColumnIndex == dgvProducts.Columns["Edit"].Index)
             {
-                MessageBox.Show("Edit functionality will be implemented soon", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                try
+                {
+                    int productId = Convert.ToInt32(dgvProducts.Rows[e.RowIndex].Cells["product_id"].Value);
+                    using (AddProductForm editForm = new AddProductForm(productId))
+                    {
+                        if (editForm.ShowDialog(this) == DialogResult.OK)
+                            LoadProducts(txtSearch.Text);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error opening product for update: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else if (e.ColumnIndex == dgvProducts.Columns["Delete"].Index)
             {

@@ -118,6 +118,14 @@ namespace PharmacyManagementSystem
             }
         }
 
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            ClearForm();
+            txtProductName.ReadOnly = false;
+            txtProductName.Enabled = true;
+            txtProductName.Focus();
+        }
+
         private void btnUpdateStatus_Click(object sender, EventArgs e)
         {
             if (!isOrdersViewActive)
@@ -150,6 +158,14 @@ namespace PharmacyManagementSystem
 
             try
             {
+                if (newStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+                {
+                    db.CompleteOrderAndReduceStock(orderId);
+                    MessageBox.Show("Order completed and stock updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadOrders();
+                    return;
+                }
+
                 string query = "UPDATE orders SET status = @status WHERE order_id = @id";
                 MySqlParameter[] parameters = new MySqlParameter[]
                 {
@@ -348,7 +364,7 @@ namespace PharmacyManagementSystem
             btnAdd.BackColor = Color.FromArgb(255, 143, 0);
             btnEdit.BackColor = Color.FromArgb(255, 143, 0);
             btnDelete.BackColor = Color.FromArgb(211, 47, 47);
-            btnClear.BackColor = Color.FromArgb(158, 158, 158);
+            btnCreate.BackColor = Color.FromArgb(46, 125, 50);
             btnSave.BackColor = Color.FromArgb(46, 125, 50);
 
             // Navigation buttons
@@ -361,7 +377,7 @@ namespace PharmacyManagementSystem
             btnShowOrders.FlatAppearance.BorderSize = 0;
             btnShowProducts.FlatAppearance.BorderSize = 0;
 
-            foreach (Button btn in new Button[] { btnAdd, btnEdit, btnDelete, btnClear, btnSave })
+            foreach (Button btn in new Button[] { btnAdd, btnEdit, btnDelete, btnCreate, btnSave })
             {
                 btn.ForeColor = Color.White;
                 btn.FlatStyle = FlatStyle.Flat;
@@ -648,9 +664,10 @@ namespace PharmacyManagementSystem
             }
         }
 
-        private void btnClear_Click(object sender, EventArgs e)
+        private void btnCreate_Click(object sender, EventArgs e)
         {
             ClearForm();
+            txtProductName.Focus();
         }
 
         private bool ValidateInputs()

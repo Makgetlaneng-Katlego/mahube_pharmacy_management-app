@@ -51,7 +51,7 @@ namespace PharmacyManagementSystem
             this.btnExportProduct = new System.Windows.Forms.Button();
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
-            this.btnClear = new System.Windows.Forms.Button();
+            this.btnCreate = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.dgvProducts = new System.Windows.Forms.DataGridView();
             this.lblUsername = new System.Windows.Forms.Label();
@@ -205,6 +205,7 @@ namespace PharmacyManagementSystem
             this.btnAdd.ForeColor = System.Drawing.Color.White;
             this.btnAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAdd.FlatAppearance.BorderSize = 0;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
             // btnEdit
             // 
@@ -231,14 +232,14 @@ namespace PharmacyManagementSystem
             this.btnDelete.FlatAppearance.BorderSize = 0;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
-            // btnClear
+            // btnCreate
             // 
-            this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(188, 48);
-            this.btnClear.TabIndex = 7;
-            this.btnClear.Text = "Clear Fields";
-            this.btnClear.UseVisualStyleBackColor = true;
-            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
+            this.btnCreate.Name = "btnCreate";
+            this.btnCreate.Size = new System.Drawing.Size(188, 48);
+            this.btnCreate.TabIndex = 7;
+            this.btnCreate.Text = "Create Product";
+            this.btnCreate.UseVisualStyleBackColor = true;
+            this.btnCreate.Click += new System.EventHandler(this.btnCreate_Click);
             // 
             // btnSave
             // 
@@ -270,7 +271,7 @@ namespace PharmacyManagementSystem
             this.btnAdd.Margin = btnMargin;
             this.btnEdit.Margin = btnMargin;
             this.btnDelete.Margin = btnMargin;
-            this.btnClear.Margin = btnMargin;
+            this.btnCreate.Margin = btnMargin;
             this.btnSave.Margin = btnMargin;
 
             // Add the flow panel into the side panel and populate it with buttons
@@ -281,7 +282,7 @@ namespace PharmacyManagementSystem
             this.flowPanelSide.Controls.Add(this.btnAdd);
             this.flowPanelSide.Controls.Add(this.btnEdit);
             this.flowPanelSide.Controls.Add(this.btnDelete);
-            this.flowPanelSide.Controls.Add(this.btnClear);
+            this.flowPanelSide.Controls.Add(this.btnCreate);
             this.flowPanelSide.Controls.Add(this.btnSave);
             this.flowPanelSide.Controls.Add(this.btnConsultations);
             this.flowPanelSide.Controls.Add(this.btnPrescriptions);
@@ -574,7 +575,7 @@ namespace PharmacyManagementSystem
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnEdit;
         private System.Windows.Forms.Button btnDelete;
-        private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnCreate;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.DataGridView dgvProducts;
         private System.Windows.Forms.Label lblUsername;

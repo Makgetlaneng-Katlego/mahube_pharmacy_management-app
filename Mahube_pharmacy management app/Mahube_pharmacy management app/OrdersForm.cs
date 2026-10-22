@@ -61,7 +61,6 @@ namespace PharmacyManagementSystem
             btnConsultations = CreateSideButton("💬 Consultations", 156);
             btnPrescriptions = CreateSideButton("💊 Prescriptions", 208);
             var btnUsers = CreateSideButton("👥 Users", 260);
-            var btnSettings = CreateSideButton("⚙️ Settings", 312);
 
             btnDashboard.Click += BtnDashboard_Click;
             btnProducts.Click += BtnProducts_Click;
@@ -82,7 +81,7 @@ namespace PharmacyManagementSystem
             btnLogout.FlatAppearance.BorderSize = 0;
             btnLogout.Click += BtnLogout_Click;
 
-            panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders, btnConsultations, btnPrescriptions, btnUsers, btnSettings, btnLogout });
+            panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders, btnConsultations, btnPrescriptions, btnUsers, btnLogout });
 
             // Header panel
             panelHeader = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.WhiteSmoke };
@@ -255,6 +254,88 @@ namespace PharmacyManagementSystem
             }
         }
 
+        private void ShowOrderDetails(int orderId)
+        {
+            try
+            {
+                // Fetch order header
+                var headerDt = _db.ExecuteQuery(
+                    "SELECT o.order_id, o.customer_id, COALESCE(u.fullname, '') AS customer_name, o.order_date, o.total_amount, o.status, o.shipping_address, o.payment_method FROM orders o LEFT JOIN users u ON o.customer_id = u.user_id WHERE o.order_id = @order_id",
+                    new MySqlParameter[] { new MySqlParameter("@order_id", orderId) });
+
+                if (headerDt.Rows.Count == 0)
+                {
+                    MessageBox.Show("Order not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                DataRow h = headerDt.Rows[0];
+
+                // Fetch order items
+                // Join order_items with products to get product name and price at time of order
+                var itemsDt = _db.ExecuteQuery(
+                    "SELECT oi.order_item_id, oi.product_id, COALESCE(p.product_name, '') AS product_name, oi.quantity, oi.price_at_time, (oi.quantity * oi.price_at_time) AS Subtotal " +
+                    "FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = @order_id ORDER BY oi.order_item_id",
+                    new MySqlParameter[] { new MySqlParameter("@order_id", orderId) });
+
+                // Build details form
+                Form detailsForm = new Form()
+                {
+                    Text = $"Order #{orderId} Details",
+                    Size = new Size(800, 600),
+                    StartPosition = FormStartPosition.CenterParent
+                };
+
+                decimal computedTotal = 0m;
+                foreach (DataRow row in itemsDt.Rows)
+                {
+                    if (decimal.TryParse(row["Subtotal"].ToString(), out decimal s)) computedTotal += s;
+                }
+
+                string totalDisplay = Convert.ToDecimal(h["total_amount"]).ToString("N2");
+                if (computedTotal > 0 && Math.Abs(computedTotal - Convert.ToDecimal(h["total_amount"])) > 0.01m)
+                {
+                    totalDisplay = computedTotal.ToString("N2") + " (recomputed)";
+                }
+
+                var lblInfo = new Label()
+                {
+                    AutoSize = false,
+                    Size = new Size(760, 80),
+                    Location = new Point(10, 10),
+                    Font = new Font("Segoe UI", 9),
+                    Text = $"Customer: {h["customer_name"]} (User ID: {h["customer_id"]})\nDate: {Convert.ToDateTime(h["order_date"]):yyyy/MM/dd HH:mm}" +
+                           $"\nStatus: {h["status"]}  Total: {totalDisplay}\nShipping: {h["shipping_address"]}  Payment: {h["payment_method"]}"
+                };
+
+                var dgvItems = new DataGridView()
+                {
+                    Location = new Point(10, 100),
+                    Size = new Size(760, 420),
+                    ReadOnly = true,
+                    AllowUserToAddRows = false,
+                    AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                    DataSource = itemsDt,
+                    SelectionMode = DataGridViewSelectionMode.FullRowSelect
+                };
+
+                // Format numeric columns
+                if (dgvItems.Columns.Contains("price_at_time"))
+                    dgvItems.Columns["price_at_time"].DefaultCellStyle.Format = "N2";
+                if (dgvItems.Columns.Contains("Subtotal"))
+                    dgvItems.Columns["Subtotal"].DefaultCellStyle.Format = "N2";
+
+                detailsForm.Controls.Add(lblInfo);
+                detailsForm.Controls.Add(dgvItems);
+
+                detailsForm.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to load order details: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void LoadOrders(string searchTerm = "", string statusFilter = "All Status")
         {
             try
@@ -394,10 +475,13 @@ namespace PharmacyManagementSystem
             {
                 try
                 {
-                    string orderId = dgvOrders.Rows[e.RowIndex].Cells["order_id"].Value.ToString();
+                    string orderIdStr = dgvOrders.Rows[e.RowIndex].Cells["order_id"].Value.ToString();
                     // Remove the "#ORD-" prefix to get the actual ID
-                    orderId = orderId.Replace("#ORD-", "");
-                    MessageBox.Show($"Order Details for {orderId}\n\nFull order details view coming soon.", "Order Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    orderIdStr = orderIdStr.Replace("#ORD-", "");
+                    if (int.TryParse(orderIdStr, out int orderId))
+                    {
+                        ShowOrderDetails(orderId);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -504,6 +588,13 @@ namespace PharmacyManagementSystem
         {
             try
             {
+                if (newStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+                {
+                    _db.CompleteOrderAndReduceStock(orderId);
+                    MessageBox.Show("Order completed and stock updated successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
                 string query = "UPDATE orders SET status = @status WHERE order_id = @orderId";
                 MySqlParameter[] parameters = new MySqlParameter[]
                 {

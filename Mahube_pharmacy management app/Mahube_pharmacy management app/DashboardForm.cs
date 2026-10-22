@@ -29,7 +29,6 @@ namespace PharmacyManagementSystem
         private Button btnConsultations;
         private Button btnPrescriptions;
         private Button btnUsers;
-        private Button btnSettings;
         private Button btnLogout;
 
         public DashboardForm()
@@ -69,7 +68,6 @@ namespace PharmacyManagementSystem
             btnConsultations = CreateSideButton("💬 Consultations", 156);
             btnPrescriptions = CreateSideButton("💊 Prescriptions", 208);
             btnUsers = CreateSideButton("👥 Users", 260);
-            btnSettings = CreateSideButton("⚙️ Settings", 312);
 
             btnDashboard.Click += BtnDashboard_Click;
             btnProducts.Click += BtnProducts_Click;
@@ -91,7 +89,7 @@ namespace PharmacyManagementSystem
             btnLogout.FlatAppearance.BorderSize = 0;
             btnLogout.Click += BtnLogout_Click;
 
-            panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders, btnConsultations, btnPrescriptions, btnUsers, btnSettings, btnLogout });
+            panelSide.Controls.AddRange(new Control[] { lblLogo, btnDashboard, btnProducts, btnOrders, btnConsultations, btnPrescriptions, btnUsers, btnLogout });
 
             // Header panel
             panelHeader = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.WhiteSmoke };
@@ -244,12 +242,12 @@ namespace PharmacyManagementSystem
                 dt = _db.ExecuteQuery("SELECT COUNT(*) AS total FROM orders WHERE status = 'Pending'");
                 lblPendingOrdersValue.Text = (dt.Rows.Count > 0) ? dt.Rows[0]["total"].ToString() : "0";
 
-                // Connects to 'consultation' table using 'preferred_date'
-                dt = _db.ExecuteQuery("SELECT COUNT(*) AS total FROM consultation WHERE DATE(preferred_date) = CURDATE()");
+                // Connects to 'consultation' table (removed filter for current date)
+                dt = _db.ExecuteQuery("SELECT COUNT(*) AS total FROM consultation");
                 lblTodaysConsultsValue.Text = (dt.Rows.Count > 0) ? dt.Rows[0]["total"].ToString() : "0";
 
-                // Connects to 'prescription' table
-                dt = _db.ExecuteQuery("SELECT COUNT(*) AS total FROM prescription WHERE DATE(date_prescrided) = CURDATE()");
+                // Connects to 'prescription' table (removed filter for current date and fixed column name)
+                dt = _db.ExecuteQuery("SELECT COUNT(*) AS total FROM prescription");
                 lblNewPrescriptionsValue.Text = (dt.Rows.Count > 0) ? dt.Rows[0]["total"].ToString() : "0";
             }
             catch (Exception ex)
